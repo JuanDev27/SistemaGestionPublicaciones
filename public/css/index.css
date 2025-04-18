@@ -1,0 +1,125 @@
+body {
+    text-align: center;
+    background-color: #24b3cd;
+    /*background: linear-gradient(-45deg, #24b3cd, #1ca0ba, #188dad, #137aa0, #0f6793, #0b5486, #083f78);*/
+    animation: moveGradient 40s ease-in-out infinite alternate;
+    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+/* Título Principal */
+#P_titulo {
+    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+    color: #fdd807;
+    font-size: 36px;
+    font-weight: bold;
+    text-transform: uppercase;
+    border-bottom: 3px solid #eaca19;
+    padding-bottom: 5px;
+    margin-bottom: 20px;
+    display: inline-block;
+}
+
+/* Titulos Publicaciones*/
+h2 {
+    color: #ffffff;
+    background-color: #6133e9;
+    display: inline-block;
+    padding: 15px 25px;
+    border-radius: 25px;
+    margin-bottom: 20px;
+    text-transform: capitalize;
+}
+
+
+#publicaciones {
+    background-color: #82d2e1bc; /* Translucido */
+    display: inline-block;
+    padding: 20px;
+    border-radius: 20px;
+    width: 700px;
+    box-shadow: 0px 0px 30px rgba(7, 190, 226, 0.5);
+    transition: transform 0.3s ease;
+}
+
+#publicaciones:hover {
+    transform: scale(1.01); 
+}
+
+
+#contenido {
+    color: #ffffff;
+    background-color: rgba(12, 84, 193, 0.8); /* Translucido */
+    max-width: 550px;
+    padding: 15px;
+    margin: 20px auto;
+    border-radius: 15px;
+    box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.1);
+    font-size: 1.1rem;
+}
+
+/* Botón Cerrar Sesión */
+.cerrar-sesion {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    padding: 12px 18px;
+    background-color: #f44336;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    box-shadow: 0px 0px 15px rgba(178, 23, 95, 0.6);
+    transition: background-color 0.3s ease;
+}
+
+.cerrar-sesion:hover {
+    background-color: #d32f2f;
+    transform: scale(0.99); 
+}
+
+/* Botón Publicar */
+.publicar {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    padding: 12px 18px;
+    background-color: #1cc83c;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    box-shadow: 0px 0px 15px rgba(38, 178, 23, 0.6);
+    transition: background-color 0.3s ease;
+}
+
+.publicar:hover {
+    background-color: #1cdc26;
+    transform: scale(1.02); 
+}
+
+/* Animación Título Principal */
+@keyframes title {
+    0% {
+        transform: translateY(50px);
+        opacity: 0;
+    }
+    100% {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Animación de fondo */
+@keyframes moveGradient {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
