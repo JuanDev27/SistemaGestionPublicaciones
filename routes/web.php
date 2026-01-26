@@ -8,7 +8,7 @@ use App\Http\Controllers\PostController;
 Route::middleware(['web'])->group(function () {
 
     Route::get('/', function () {
-        return view('welcome');
+        return view('auth.login');
     });
     /*LOGIN, REGISTER & LOGOUT */
     Route::get('/login', function () {
