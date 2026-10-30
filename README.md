@@ -16,3 +16,26 @@ En la terminal de VS Code escribir el siguiente comando: **git clone https://git
 
 ## Iniciar servidor local
 **Comando en terminal:** php artisan serve
+
+## Subir cambios
+Equipo, para evitar romper develop y mantener un historial ordenado, a partir de ahora ya no se harán commits ni push directos a develop. La rama develop está protegida.
+
+El nuevo flujo de trabajo para cualquier tarea (feat, fix, style) será el siguiente:
+
+Asegúrate de tener lo último de develop:
+git checkout develop && git pull origin develop
+
+Crea tu propia rama con un nombre descriptivo según el tipo de tarea:
+
+git checkout -b feat/nombre-de-la-funcion
+
+git checkout -b fix/nombre-del-error
+
+git checkout -b style/nombre-de-los-cambios-visuales
+
+Trabaja y haz tus commits en esa rama normalmente.
+
+Sube tu rama al repositorio:
+git push origin feat/nombre-de-la-funcion
+
+Abre un Pull Request (PR) hacia develop para que sea revisado y fusionado.
