@@ -19,11 +19,6 @@ Route::middleware(['web'])->group(function () {
         return view('auth.register');
     })->middleware(['guest'])->name('register');
 
-    Route::post('/logout', function () {
-        auth()->logout();
-        return redirect('/login');
-    })->name('logout');
-
     /*HOME PAGE(Redirigir) */
     Route::get('/home', function () {
         return redirect()->route('posts.index'); // Redirige a /posts

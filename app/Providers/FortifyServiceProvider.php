@@ -13,6 +13,8 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Laravel\Fortify\Fortify;
 use Laravel\Fortify\Contracts\LogoutResponse;
+use App\Models\User;
+use Illuminate\Support\Facades\Hash;
 
 class FortifyServiceProvider extends ServiceProvider
 {
@@ -59,6 +61,22 @@ class FortifyServiceProvider extends ServiceProvider
                 return redirect('/login');
             }
         });
+
+        Fortify::authenticateUsing(function (Request $request) {
+            // Buscar usuario por email
+            $user = User::where('email', $request->email)->first();
+            // Validar usuario y contraseña Hash coinciden
+            if ($user && Hash::check($request->password, $user->password)) {
+                // Variables de sesión
+                $request->session()->put('rol_usuario', $user->role);
+                $request->session()->put('ultima_conexion', now());
+
+                return $user;
+            }
+        // Si falla
+        return null;
+    });
+
         // Limitar intentos de login (5 por minuto por usuario + IP)
         RateLimiter::for('login', function (Request $request) {
             $throttleKey = Str::transliterate(
