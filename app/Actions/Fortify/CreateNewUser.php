@@ -21,19 +21,28 @@ class CreateNewUser implements CreatesNewUsers
     {
         Validator::make($input, [
             'name' => ['required', 'string', 'max:255'],
+            'lastname' => ['required', 'string', 'max:255'],
+            'phone' => ['nullable', 'string', 'max:20'],
             'email' => [
                 'required',
                 'string',
                 'email',
                 'max:255',
                 Rule::unique(User::class),
+                function ($attribute, $value, $fail) {
+                    if (!str_ends_with($value, '@uniautonoma.edu.co')) {
+                        $fail('El correo electrónico debe pertenecer obligatoriamente al dominio @uniautonoma.edu.co');
+                        }   
+                },
             ],
             'password' => $this->passwordRules(),
         ])->validate();
 
         return User::create([
             'name' => $input['name'],
+            'lastname' => $input['lastname'],
             'email' => $input['email'],
+            'phone' => $input['phone'] ?? null,
             'password' => Hash::make($input['password']),
         ]);
     }
