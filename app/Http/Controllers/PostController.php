@@ -13,8 +13,7 @@ class PostController extends Controller
      */
     public function index()
     {
-        $userId = Auth::id();
-        $publicaciones = Publicacion::where('usuario_id', $userId)->get();
+        $publicaciones = Publicacion::with('user')->latest()->get();
         return view('posts.index', compact('publicaciones'));
     }
 
@@ -28,16 +27,20 @@ class PostController extends Controller
     }
     public function store(Request $request)
     {
-        $request->validate([
+        $validated = $request->validate([
             'titulo' => 'required|string|max:255',
-            'contenido' => 'required|string',
+            'contenido' => 'required|string|max:5000',
+            'categoria' => 'required|string|max:100',
+            'imagen' => 'required|image|mimes:jpg,jpeg,png,webp|max:5120',
+            'lugar' => 'required|string|max:255',
+            'fecha_hallazgo' => 'required|date',
+            'encontrado' => 'required|boolean',
+            'confirmacion' => 'accepted',
         ]);
 
-        $post = new Publicacion();
-        $post->titulo = $request->titulo;
-        $post->contenido = $request->contenido;
-        $post->usuario_id = Auth::id(); 
-        $post->save();
+        $validated['imagen'] = $request->file('imagen')->store('publicaciones', 'public');
+        $validated['usuario_id'] = Auth::id();
+        $post = Publicacion::create($validated);
 
         return redirect()->route('posts.index')->with('success', 'Publicación creada exitosamente!');
 
@@ -86,7 +89,7 @@ class PostController extends Controller
 
         $publicacion->delete();
 
-        $publicaciones = Publicacion::where('usuario_id', $userId)->get();
+        $publicaciones = Publicacion::with('user')->latest()->get();
 
         return view('posts.index', compact('publicaciones'))->with('success', 'Publicación eliminada');
 

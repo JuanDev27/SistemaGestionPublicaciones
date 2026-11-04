@@ -4,58 +4,67 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home Publicaciones</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Objetos perdidos</title>
     <link rel="stylesheet" href="{{ asset('css/index.css') }}">
 </head>
 
-<body>
-    <div id="publicaciones">
-        <h1 id="P_titulo">Bienvenido a la página de publicaciones</h1>
-        @if($publicaciones->count())
-            @foreach ($publicaciones as $post)
-                <h2>{{ $post->titulo }}</h2>
-                <div id="contenido">
-                    <p>{{ $post->contenido }}</p>
-                    <p>Fecha: {{ $post->created_at }}</p>
-                    <p>Autor: {{ $post->user->email }}</p>
+<body class="posts-page">
+    <header class="posts-header">
+        <div>
+            <p class="eyebrow">Comunidad universitaria</p>
+            <h1>Objetos perdidos</h1>
+        </div>
+        <div class="header-actions">
+            <a href="{{ route('posts.create') }}" class="publish-link">+ Publicar hallazgo</a>
+            <form method="POST" action="{{ route('logout') }}">
+                @csrf
+                <button type="submit" class="logout-button">Cerrar sesión</button>
+            </form>
+        </div>
+    </header>
 
-                    @if($post->usuario_id === Auth::id())
-                        <!-- Botón Editar -->
-                        <a href="{{ route('posts.edit', $post->id) }}">
-                            <button type="submit" class="btn btn-success">Editar</button>
-                        </a>
-                        <!-- Eliminar -->
-                        <form action="{{ route('posts.destroy', $post->id) }}" method="POST" style="display:inline;"
-                            onsubmit="return confirm('¿Estás seguro de que deseas eliminar esta publicación?');">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="btn btn-danger">Eliminar</button>
-                        </form>
-                    @endif
+    @if (session('success'))
+        <div class="success-message">{{ session('success') }}</div>
+    @endif
 
-                    <a href="{{ route('posts.show', $post->id) }}">
-                        <button type="button" class="btn btn-warning mt-2">Detalles</button>
-                    </a>
-                </div>
-            @endforeach
+    <main class="posts-content">
+        <div class="list-heading">
+            <h2>Hallazgos recientes</h2>
+            <span>{{ $publicaciones->count() }} publicaciones</span>
+        </div>
+
+        @if ($publicaciones->count())
+            <div class="posts-grid">
+                @foreach ($publicaciones as $post)
+                    <article class="post-card">
+                        @if ($post->imagen)
+                            <img src="{{ asset('storage/' . $post->imagen) }}" alt="Imagen de {{ $post->titulo }}" class="post-image">
+                        @else
+                            <div class="post-image post-image-empty">Sin imagen</div>
+                        @endif
+                        <div class="post-body">
+                            <div class="post-status">{{ $post->encontrado ? 'Encontrado' : 'Reportado' }}</div>
+                            <h3>{{ $post->titulo }}</h3>
+                            <p>{{ $post->contenido }}</p>
+                            <dl>
+                                <div><dt>Lugar</dt><dd>{{ $post->lugar }}</dd></div>
+                                <div><dt>Fecha</dt><dd>{{ optional($post->fecha_hallazgo)->format('d/m/Y') }}</dd></div>
+                                <div><dt>Publicado por</dt><dd>{{ $post->user->name ?? $post->user->email }}</dd></div>
+                            </dl>
+                            <div class="post-footer">
+                                <span class="category-tag">{{ $post->categoria }}</span>
+                                @if ($post->usuario_id === Auth::id())
+                                    <a href="{{ route('posts.edit', $post->id) }}">Editar</a>
+                                @endif
+                            </div>
+                        </div>
+                    </article>
+                @endforeach
+            </div>
         @else
-            <p>No hay publicaciones para mostrar.</p>
+            <div class="empty-posts">Todavía no hay objetos publicados.</div>
         @endif
-    </div>
-
-    <!-- Botón Publicar -->
-    <a href="{{ route('posts.create') }}">
-        <button type="submit" class="publicar">
-            Publicar
-        </button>
-    </a>
-
-    <!-- Botón Cerrar sesión -->
-    <form method="POST" action="{{ route('logout') }}">
-        @csrf
-        <button type="submit" class="cerrar-sesion">Cerrar sesión</button>
-    </form>
+    </main>
 </body>
 
 </html>

@@ -17,7 +17,17 @@ class Publicacion extends Model
 protected $fillable = [
     'titulo',
     'contenido',
-    'user_id',
+    'categoria',
+    'imagen',
+    'lugar',
+    'fecha_hallazgo',
+    'encontrado',
+    'usuario_id',
+];
+
+protected $casts = [
+    'fecha_hallazgo' => 'date',
+    'encontrado' => 'boolean',
 ];
 
 }
