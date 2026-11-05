@@ -23,12 +23,14 @@ class CreateNewUser implements CreatesNewUsers
             'name' => ['required', 'string', 'max:255'],
             'lastname' => ['required', 'string', 'max:255'],
             'phone' => ['nullable', 'string', 'max:20'],
+            'programa_academico' => ['required', 'string', 'max:255'],
+            'codigo_estudiantil' => ['required', 'string', 'regex:/^[0-9]+$/'],
             'email' => [
                 'required',
                 'string',
                 'email',
                 'max:255',
-                Rule::unique(User::class),
+                Rule::unique(User::class, 'correo'),
                 function ($attribute, $value, $fail) {
                     if (!str_ends_with($value, '@uniautonoma.edu.co')) {
                         $fail('El correo electrónico debe pertenecer obligatoriamente al dominio @uniautonoma.edu.co');
@@ -39,11 +41,16 @@ class CreateNewUser implements CreatesNewUsers
         ])->validate();
 
         return User::create([
-            'name' => $input['name'],
-            'lastname' => $input['lastname'],
-            'email' => $input['email'],
-            'phone' => $input['phone'] ?? null,
-            'password' => Hash::make($input['password']),
+            'nombres' => $input['name'],
+            'apellidos' => $input['lastname'],
+            'correo' => $input['email'],
+            'telefono' => $input['phone'] ?? null,
+            'programa_academico' => $input['programa_academico'],
+            'codigo_estudiantil' => $input['codigo_estudiantil'],
+            'rol' => 'estudiante',
+            'estado' => 'ACTIVO',
+            'fecha_registro' => now(),
+            'contrasena_hash' => Hash::make($input['password']),
         ]);
     }
 }

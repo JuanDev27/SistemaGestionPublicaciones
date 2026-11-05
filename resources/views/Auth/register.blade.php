@@ -135,7 +135,7 @@
 
                 <div class="field-row">
                     <div class="field">
-                        <label for="name">Nombre</label>
+                        <label for="name">Nombres</label>
                         <input id="name" type="text" name="name" value="{{ old('name') }}"
                             placeholder="Ej. Ana María" autocomplete="given-name" required autofocus
                             @error('name') aria-invalid="true" @enderror>
@@ -153,7 +153,7 @@
                     </div>
 
                     <div class="field">
-                        <label for="lastname">Apellido</label>
+                        <label for="lastname">Apellidos</label>
                         <input id="lastname" type="text" name="lastname" value="{{ old('lastname') }}"
                             placeholder="Ej. Rodríguez" autocomplete="family-name" required
                             @error('lastname') aria-invalid="true" @enderror>
@@ -167,6 +167,29 @@
                                 </svg>
                                 {{ $message }}
                             </p>
+                        @enderror
+                    </div>
+                </div>
+
+                <div class="field-row">
+                    <div class="field">
+                        <label for="programa_academico">Programa académico</label>
+                        <input id="programa_academico" type="text" name="programa_academico"
+                            value="{{ old('programa_academico') }}" placeholder="Ej. Ingeniería de Sistemas"
+                            required @error('programa_academico') aria-invalid="true" @enderror>
+                        @error('programa_academico')
+                            <p class="field-error">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div class="field">
+                        <label for="codigo_estudiantil">Código estudiantil</label>
+                        <input id="codigo_estudiantil" type="text" name="codigo_estudiantil"
+                            value="{{ old('codigo_estudiantil') }}" placeholder="Ej. 202610123"
+                            inputmode="numeric" pattern="[0-9]+" required
+                            @error('codigo_estudiantil') aria-invalid="true" @enderror>
+                        @error('codigo_estudiantil')
+                            <p class="field-error">{{ $message }}</p>
                         @enderror
                     </div>
                 </div>

@@ -12,10 +12,22 @@ class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable;
 
+    protected $table = 'usuarios';
+    public $timestamps = false;
+
+    public function getAuthPassword()
+    {
+        return $this->contrasena_hash;
+    }
+
+    public function getEmailForPasswordReset()
+    {
+        return $this->correo;
+    }
 
     public function publicaciones()
 {
-    return $this->hasMany(Publicacion::class);/*Un user muchas publicaciones */
+    return $this->hasMany(Publicacion::class, 'usuario_id');/*Un user muchas publicaciones */
 }
 
     /**
@@ -24,11 +36,16 @@ class User extends Authenticatable
      * @var array<int, string>
      */
     protected $fillable = [
-        'name',
-        'lastname',
-        'email',
-        'password',
-        'phone'
+        'nombres',
+        'apellidos',
+        'correo',
+        'telefono',
+        'contrasena_hash',
+        'programa_academico',
+        'codigo_estudiantil',
+        'rol',
+        'estado',
+        'fecha_registro',
     ];
 
     /**
@@ -37,7 +54,7 @@ class User extends Authenticatable
      * @var array<int, string>
      */
     protected $hidden = [
-        'password',
+        'contrasena_hash',
         'remember_token',
     ];
 
@@ -47,7 +64,7 @@ class User extends Authenticatable
      * @var array<string, string>
      */
     protected $casts = [
-        'email_verified_at' => 'datetime',
-        'password' => 'hashed',
+        'fecha_registro' => 'datetime',
+        'contrasena_hash' => 'hashed',
     ];
 }

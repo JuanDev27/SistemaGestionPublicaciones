@@ -8,16 +8,33 @@ use Illuminate\Database\Eloquent\Model;
 class Publicacion extends Model
 {
     use HasFactory;
+
     protected $table = 'publicaciones';
+    public $timestamps = false;
+
+    protected $fillable = [
+        'tipo',
+        'titulo',
+        'descripcion',
+        'categoria_id',
+        'lugar_id',
+        'lugar_detalle',
+        'fecha_evento',
+        'hora_evento',
+        'custodia_actual',
+        'estado',
+        'fecha_creacion',
+        'fecha_estado',
+    ];
+
+    protected $casts = [
+        'fecha_evento' => 'date',
+        'fecha_creacion' => 'datetime',
+        'fecha_estado' => 'datetime',
+    ];
+
     public function user()
-{
-    return $this->belongsTo(User::class,'usuario_id');/*Pertenece a clase user */
-}
-
-protected $fillable = [
-    'titulo',
-    'contenido',
-    'user_id',
-];
-
+    {
+        return $this->belongsTo(User::class, 'usuario_id');
+    }
 }
