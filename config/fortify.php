@@ -12,7 +12,7 @@ return [
 
     'password' => 'password',
 
-    'email' => 'email',
+    'email' => 'correo',
 
 
     'lowercase_usernames' => true,

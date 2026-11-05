@@ -12,13 +12,16 @@
 <body>
     <div id="publicaciones">
         <h1 id="P_titulo">Bienvenido a la página de publicaciones</h1>
+        <a href="{{ route('posts.lost.create') }}" class="reportar-perdido">
+            Reportar un objeto que has perdido
+        </a>
         @if($publicaciones->count())
             @foreach ($publicaciones as $post)
                 <h2>{{ $post->titulo }}</h2>
                 <div id="contenido">
                     <p>{{ $post->contenido }}</p>
                     <p>Fecha: {{ $post->created_at }}</p>
-                    <p>Autor: {{ $post->user->email }}</p>
+                    <p>Autor: {{ $post->user->correo }}</p>
 
                     @if($post->usuario_id === Auth::id())
                         <!-- Botón Editar -->

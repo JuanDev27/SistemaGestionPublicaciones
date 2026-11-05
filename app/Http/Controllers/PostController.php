@@ -4,7 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\Publicacion;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class PostController extends Controller
 {
@@ -28,19 +32,83 @@ class PostController extends Controller
     }
     public function store(Request $request)
     {
-        $request->validate([
+        $type = $request->input('tipo');
+        $validated = $request->validate([
+            'tipo' => ['nullable', Rule::in(['PERDIDO', 'HALLADO'])],
             'titulo' => 'required|string|max:255',
-            'contenido' => 'required|string',
+            'descripcion' => 'required|string',
+            'categoria_id' => 'required|integer|min:1',
+            'lugar_id' => 'required|integer|min:1',
+            'lugar_detalle' => 'nullable|string|max:255',
+            'fecha_evento' => 'required|date',
+            'hora_evento' => ['nullable', 'date_format:H:i'],
+            'custodia_actual' => [
+                Rule::requiredIf($type === 'HALLADO'),
+                'nullable',
+                'string',
+                'max:255',
+            ],
+            'imagen' => [
+                Rule::requiredIf($type === 'HALLADO'),
+                'nullable',
+                'image',
+                'mimes:jpg,jpeg,png,webp',
+                'max:5120',
+            ],
+        ], [
+            'custodia_actual.required' => 'Indica quién tiene actualmente el objeto hallado.',
+            'imagen.required' => 'Debes adjuntar una imagen para publicar un objeto hallado.',
+            'imagen.image' => 'El archivo adjunto debe ser una imagen.',
+            'imagen.mimes' => 'La imagen debe estar en formato JPG, JPEG, PNG o WEBP.',
+            'imagen.max' => 'La imagen no puede superar los 5 MB.',
         ]);
 
-        $post = new Publicacion();
-        $post->titulo = $request->titulo;
-        $post->contenido = $request->contenido;
-        $post->usuario_id = Auth::id(); 
-        $post->save();
+        [$post, $imagePath] = DB::transaction(function () use ($validated, $request) {
+            $post = new Publicacion();
+            $post->usuario_id = Auth::id();
+            $post->fill([
+                ...$validated,
+                'tipo' => $validated['tipo'] ?? 'PERDIDO',
+                'estado' => 'ACTIVA',
+                'fecha_creacion' => now(),
+                'fecha_estado' => now(),
+            ]);
+            $post->save();
 
-        return redirect()->route('posts.index')->with('success', 'Publicación creada exitosamente!');
+            $imagePath = null;
+            if ($request->hasFile('imagen')) {
+                $image = $request->file('imagen');
+                $imagePath = $image->storePubliclyAs(
+                    "publicaciones/{$post->id}",
+                    'imagen.' . $image->extension(),
+                    'public'
+                );
 
+                if ($imagePath === false) {
+                    throw ValidationException::withMessages([
+                        'imagen' => 'No fue posible guardar la imagen. Inténtalo nuevamente.',
+                    ]);
+                }
+            }
+
+            return [$post, $imagePath];
+        });
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => 'Publicación creada exitosamente.',
+                'data' => [
+                    'id' => $post->id,
+                    'usuario_id' => $post->usuario_id,
+                    'tipo' => $post->tipo,
+                    'estado' => $post->estado,
+                    'imagen' => $imagePath,
+                ],
+            ], 201);
+        }
+
+        return redirect()->route('posts.lost.create')
+            ->with('success', 'Publicación creada exitosamente.');
     }
 
 

@@ -47,6 +47,23 @@ h2 {
     transform: scale(1.01); 
 }
 
+.reportar-perdido {
+    display: inline-block;
+    margin: 0 0 20px;
+    padding: 12px 18px;
+    color: #ffffff;
+    background-color: #147a4d;
+    border-radius: 6px;
+    text-decoration: none;
+    box-shadow: 0px 0px 15px rgba(20, 122, 77, 0.4);
+    transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.reportar-perdido:hover {
+    color: #ffffff;
+    background-color: #0f633d;
+    transform: scale(1.02);
+}
 
 #contenido {
     color: #ffffff;
