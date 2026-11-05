@@ -30,7 +30,7 @@ class CreateNewUser implements CreatesNewUsers
                 'string',
                 'email',
                 'max:255',
-                Rule::unique(User::class),
+                Rule::unique(User::class, 'email'),
                 function ($attribute, $value, $fail) {
                     if (!str_ends_with($value, '@uniautonoma.edu.co')) {
                         $fail('El correo electrónico debe pertenecer obligatoriamente al dominio @uniautonoma.edu.co');

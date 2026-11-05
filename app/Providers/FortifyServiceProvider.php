@@ -6,6 +6,7 @@ use App\Actions\Fortify\CreateNewUser;
 use App\Actions\Fortify\ResetUserPassword;
 use App\Actions\Fortify\UpdateUserPassword;
 use App\Actions\Fortify\UpdateUserProfileInformation;
+use App\Http\Responses\RegisterResponse;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
@@ -13,6 +14,7 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Laravel\Fortify\Fortify;
 use Laravel\Fortify\Contracts\LogoutResponse;
+use Laravel\Fortify\Contracts\RegisterResponse as RegisterResponseContract;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 
@@ -23,7 +25,8 @@ class FortifyServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // Después de registrarse, cerrar la sesión automática y volver al login.
+        $this->app->singleton(RegisterResponseContract::class, RegisterResponse::class);
     }
 
     /**
@@ -64,11 +67,11 @@ class FortifyServiceProvider extends ServiceProvider
 
         Fortify::authenticateUsing(function (Request $request) {
             // Buscar usuario por email
-            $user = User::where('email', $request->email)->first();
+            $user = User::where('correo', $request->email)->first();
             // Validar usuario y contraseña Hash coinciden
-            if ($user && Hash::check($request->password, $user->password)) {
+            if ($user && Hash::check($request->password, $user->contrasena_hash)) {
                 // Variables de sesión
-                $request->session()->put('rol_usuario', $user->role);
+                $request->session()->put('rol_usuario', $user->rol);
                 $request->session()->put('ultima_conexion', now());
 
                 return $user;

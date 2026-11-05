@@ -24,7 +24,7 @@
                 <p><strong>Título:</strong> {{ $post->titulo }}</p>
                 <p><strong>Contenido:</strong> {{ $post->contenido }}</p>
                 <p><strong>Fecha de Creación:</strong> {{ $post->created_at->format('d-m-Y H:i') }}</p>
-                <p><strong>Subido por:</strong> {{ $post->user->name }} ({{ $post->user->email }})</p>
+                <p><strong>Subido por:</strong> {{ $post->user->nombres }} ({{ $post->user->correo }})</p>
             </div>
             <div class="card-footer">
             <x-boton-volver route="posts.index" />

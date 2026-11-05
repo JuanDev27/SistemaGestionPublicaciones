@@ -8,23 +8,18 @@ use Illuminate\Support\Facades\Auth;
 
 class PostController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
         $publicaciones = Publicacion::with('user')->latest()->get();
+
         return view('posts.index', compact('publicaciones'));
     }
-
-    /**
-     * Show the form for creating a new resource.
-     */
 
     public function create()
     {
         return view('posts.create');
     }
+
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -40,12 +35,12 @@ class PostController extends Controller
 
         $validated['imagen'] = $request->file('imagen')->store('publicaciones', 'public');
         $validated['usuario_id'] = Auth::id();
-        $post = Publicacion::create($validated);
 
-        return redirect()->route('posts.index')->with('success', 'Publicación creada exitosamente!');
+        Publicacion::create($validated);
 
+        return redirect()->route('posts.index')
+            ->with('success', 'Publicación creada exitosamente.');
     }
-
 
     public function show(string $id)
     {
@@ -64,6 +59,7 @@ class PostController extends Controller
 
         return view('posts.edit', compact('post'));
     }
+
     public function update(Request $request, string $id)
     {
         $publicacion = Publicacion::findOrFail($id);
@@ -77,10 +73,8 @@ class PostController extends Controller
         return redirect()->route('posts.index')->with('success', 'Publicación actualizada');
     }
 
-
     public function destroy(string $id)
     {
-        $userId = Auth::id();
         $publicacion = Publicacion::findOrFail($id);
 
         if ($publicacion->usuario_id !== Auth::id()) {
@@ -89,9 +83,7 @@ class PostController extends Controller
 
         $publicacion->delete();
 
-        $publicaciones = Publicacion::with('user')->latest()->get();
-
-        return view('posts.index', compact('publicaciones'))->with('success', 'Publicación eliminada');
-
+        return redirect()->route('posts.index')
+            ->with('success', 'Publicación eliminada');
     }
 }
