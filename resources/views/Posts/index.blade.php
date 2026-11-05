@@ -16,6 +16,7 @@
         </div>
         <div class="header-actions">
             <a href="{{ route('posts.create') }}" class="publish-link">+ Publicar hallazgo</a>
+            <a href="{{ route('posts.lost.create') }}" class="publish-link">+ Objeto que perdí</a>
             <form method="POST" action="{{ route('logout') }}">
                 @csrf
                 <button type="submit" class="logout-button">Cerrar sesión</button>

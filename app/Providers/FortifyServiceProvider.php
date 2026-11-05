@@ -66,19 +66,17 @@ class FortifyServiceProvider extends ServiceProvider
         });
 
         Fortify::authenticateUsing(function (Request $request) {
-            // Buscar usuario por email
-            $user = User::where('correo', $request->email)->first();
-            // Validar usuario y contraseña Hash coinciden
-            if ($user && Hash::check($request->password, $user->contrasena_hash)) {
-                // Variables de sesión
+            $user = User::where('correo', Str::lower($request->input('email')))->first();
+
+            if ($user && $user->estado === 'ACTIVO' && Hash::check($request->password, $user->contrasena_hash)) {
                 $request->session()->put('rol_usuario', $user->rol);
                 $request->session()->put('ultima_conexion', now());
 
                 return $user;
             }
-        // Si falla
-        return null;
-    });
+
+            return null;
+        });
 
         // Limitar intentos de login (5 por minuto por usuario + IP)
         RateLimiter::for('login', function (Request $request) {

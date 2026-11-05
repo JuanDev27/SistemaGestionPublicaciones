@@ -22,8 +22,7 @@ class InactivarSesionUsuario
     public function handle(Logout $event): void
     {
         if ($event->user) {
-            $event->user->update(['is_active' => false]);
-            $event->user->tokens()->delete(); 
+            $event->user->tokens()->delete();
         }
     }
 }

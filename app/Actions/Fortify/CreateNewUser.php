@@ -22,7 +22,13 @@ class CreateNewUser implements CreatesNewUsers
         Validator::make($input, [
             'name' => ['required', 'string', 'max:255'],
             'lastname' => ['required', 'string', 'max:255'],
-            'codigo_estudiantil' => ['required', 'string', 'max:50', Rule::unique(User::class)],
+            'codigo_estudiantil' => [
+                'required',
+                'string',
+                'regex:/^[0-9]+$/',
+                'max:50',
+                Rule::unique(User::class, 'codigo_estudiantil'),
+            ],
             'facultad' => ['required', 'string', 'max:255'],
             'phone' => ['nullable', 'string', 'max:20'],
             'email' => [
@@ -30,24 +36,27 @@ class CreateNewUser implements CreatesNewUsers
                 'string',
                 'email',
                 'max:255',
-                Rule::unique(User::class, 'email'),
+                Rule::unique(User::class, 'correo'),
                 function ($attribute, $value, $fail) {
-                    if (!str_ends_with($value, '@uniautonoma.edu.co')) {
+                    if (!str_ends_with(strtolower($value), '@uniautonoma.edu.co')) {
                         $fail('El correo electrónico debe pertenecer obligatoriamente al dominio @uniautonoma.edu.co');
-                        }   
+                    }
                 },
             ],
             'password' => $this->passwordRules(),
         ])->validate();
 
         return User::create([
-            'name' => $input['name'],
-            'lastname' => $input['lastname'],
+            'nombres' => $input['name'],
+            'apellidos' => $input['lastname'],
+            'correo' => strtolower($input['email']),
+            'telefono' => $input['phone'] ?? null,
+            'contrasena_hash' => Hash::make($input['password']),
+            'programa_academico' => $input['facultad'],
             'codigo_estudiantil' => $input['codigo_estudiantil'],
-            'facultad' => $input['facultad'],
-            'email' => $input['email'],
-            'phone' => $input['phone'] ?? null,
-            'password' => Hash::make($input['password']),
+            'rol' => 'estudiante',
+            'estado' => 'ACTIVO',
+            'fecha_registro' => now(),
         ]);
     }
 }

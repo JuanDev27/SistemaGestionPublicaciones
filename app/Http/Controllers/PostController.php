@@ -5,12 +5,19 @@ namespace App\Http\Controllers;
 use App\Models\Publicacion;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
+use Throwable;
 
 class PostController extends Controller
 {
     public function index()
     {
-        $publicaciones = Publicacion::with('user')->latest()->get();
+        $publicaciones = Publicacion::with('user')
+            ->orderByDesc('fecha_creacion')
+            ->get();
 
         return view('posts.index', compact('publicaciones'));
     }
@@ -22,21 +29,83 @@ class PostController extends Controller
 
     public function store(Request $request)
     {
+        $type = $request->input('tipo', 'PERDIDO');
         $validated = $request->validate([
-            'titulo' => 'required|string|max:255',
-            'contenido' => 'required|string|max:5000',
-            'categoria' => 'required|string|max:100',
-            'imagen' => 'required|image|mimes:jpg,jpeg,png,webp|max:5120',
-            'lugar' => 'required|string|max:255',
-            'fecha_hallazgo' => 'required|date',
-            'encontrado' => 'required|boolean',
-            'confirmacion' => 'accepted',
+            'tipo' => ['nullable', Rule::in(['PERDIDO', 'HALLADO'])],
+            'titulo' => ['required', 'string', 'max:255'],
+            'descripcion' => ['required', 'string'],
+            'categoria_id' => ['required', 'integer', 'min:1'],
+            'lugar_id' => ['required', 'integer', 'min:1'],
+            'lugar_detalle' => ['nullable', 'string', 'max:255'],
+            'fecha_evento' => ['required', 'date'],
+            'hora_evento' => ['nullable', 'date_format:H:i'],
+            'custodia_actual' => [
+                Rule::requiredIf($type === 'HALLADO'),
+                'nullable',
+                'string',
+                'max:255',
+            ],
+            'imagen' => [
+                Rule::requiredIf($type === 'HALLADO'),
+                'nullable',
+                'image',
+                'mimes:jpg,jpeg,png,webp',
+                'max:5120',
+            ],
+        ], [
+            'custodia_actual.required' => 'Indica quién tiene actualmente el objeto hallado.',
+            'imagen.required' => 'Debes adjuntar una imagen para publicar un objeto hallado.',
+            'imagen.image' => 'El archivo adjunto debe ser una imagen.',
+            'imagen.mimes' => 'La imagen debe ser JPG, JPEG, PNG o WEBP.',
+            'imagen.max' => 'La imagen no puede superar los 5 MB.',
         ]);
 
-        $validated['imagen'] = $request->file('imagen')->store('publicaciones', 'public');
-        $validated['usuario_id'] = Auth::id();
+        $imagePath = null;
 
-        Publicacion::create($validated);
+        try {
+            $post = DB::transaction(function () use ($validated, $request, &$imagePath) {
+                $post = new Publicacion();
+                $post->usuario_id = Auth::id();
+                $post->fill([
+                    'tipo' => $validated['tipo'] ?? 'PERDIDO',
+                    'titulo' => $validated['titulo'],
+                    'descripcion' => $validated['descripcion'],
+                    'categoria_id' => $validated['categoria_id'],
+                    'lugar_id' => $validated['lugar_id'],
+                    'lugar_detalle' => $validated['lugar_detalle'] ?? null,
+                    'fecha_evento' => $validated['fecha_evento'],
+                    'hora_evento' => $validated['hora_evento'] ?? null,
+                    'custodia_actual' => $validated['custodia_actual'] ?? null,
+                    'estado' => 'ACTIVA',
+                    'fecha_creacion' => now(),
+                    'fecha_estado' => now(),
+                ]);
+                $post->save();
+
+                $imagePath = $this->storeImage($request, $post);
+
+                return $post;
+            });
+        } catch (Throwable $exception) {
+            if ($imagePath) {
+                Storage::disk('public')->delete($imagePath);
+            }
+
+            throw $exception;
+        }
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => 'Publicación creada exitosamente.',
+                'data' => [
+                    'id' => $post->id,
+                    'usuario_id' => $post->usuario_id,
+                    'tipo' => $post->tipo,
+                    'estado' => $post->estado,
+                    'imagen' => $imagePath,
+                ],
+            ], 201);
+        }
 
         return redirect()->route('posts.index')
             ->with('success', 'Publicación creada exitosamente.');
@@ -44,7 +113,7 @@ class PostController extends Controller
 
     public function show(string $id)
     {
-        $post = Publicacion::findOrFail($id);
+        $post = Publicacion::with('user')->findOrFail($id);
 
         return view('posts.show', compact('post'));
     }
@@ -53,7 +122,7 @@ class PostController extends Controller
     {
         $post = Publicacion::findOrFail($id);
 
-        if ($post->usuario_id !== Auth::id()) {
+        if ((int) $post->usuario_id !== (int) Auth::id()) {
             abort(403, 'No tienes permiso para editar esta publicación.');
         }
 
@@ -64,26 +133,109 @@ class PostController extends Controller
     {
         $publicacion = Publicacion::findOrFail($id);
 
-        if ($publicacion->usuario_id !== Auth::id()) {
+        if ((int) $publicacion->usuario_id !== (int) Auth::id()) {
             abort(403, 'No tienes permiso para actualizar esta publicación.');
         }
 
-        $publicacion->update($request->all());
+        $type = $request->input('tipo', $publicacion->tipo);
+        $validated = $request->validate([
+            'tipo' => ['sometimes', 'required', Rule::in(['PERDIDO', 'HALLADO'])],
+            'titulo' => ['sometimes', 'required', 'string', 'max:255'],
+            'descripcion' => ['sometimes', 'required', 'string'],
+            'categoria_id' => ['sometimes', 'required', 'integer', 'min:1'],
+            'lugar_id' => ['sometimes', 'required', 'integer', 'min:1'],
+            'lugar_detalle' => ['sometimes', 'nullable', 'string', 'max:255'],
+            'fecha_evento' => ['sometimes', 'required', 'date'],
+            'hora_evento' => ['sometimes', 'nullable', 'date_format:H:i'],
+            'custodia_actual' => [
+                Rule::requiredIf($type === 'HALLADO' && blank($publicacion->custodia_actual)),
+                'nullable',
+                'string',
+                'max:255',
+            ],
+            'imagen' => [
+                Rule::requiredIf($type === 'HALLADO' && !$publicacion->imagen),
+                'nullable',
+                'image',
+                'mimes:jpg,jpeg,png,webp',
+                'max:5120',
+            ],
+        ]);
 
-        return redirect()->route('posts.index')->with('success', 'Publicación actualizada');
+        $imagePath = null;
+
+        try {
+            DB::transaction(function () use ($validated, $request, $publicacion, &$imagePath) {
+                unset($validated['imagen']);
+                $publicacion->fill($validated);
+                $publicacion->save();
+
+                $imagePath = $this->storeImage($request, $publicacion);
+            });
+        } catch (Throwable $exception) {
+            if ($imagePath) {
+                Storage::disk('public')->delete($imagePath);
+            }
+
+            throw $exception;
+        }
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => 'Publicación actualizada exitosamente.',
+                'data' => $publicacion->fresh(),
+            ]);
+        }
+
+        return redirect()->route('posts.index')
+            ->with('success', 'Publicación actualizada exitosamente.');
     }
 
     public function destroy(string $id)
     {
         $publicacion = Publicacion::findOrFail($id);
 
-        if ($publicacion->usuario_id !== Auth::id()) {
+        if ((int) $publicacion->usuario_id !== (int) Auth::id()) {
             abort(403, 'No tienes permiso para borrar esta publicación.');
         }
 
         $publicacion->delete();
+        Storage::disk('public')->deleteDirectory("publicaciones/{$publicacion->id}");
+
+        if (request()->expectsJson()) {
+            return response()->noContent();
+        }
 
         return redirect()->route('posts.index')
-            ->with('success', 'Publicación eliminada');
+            ->with('success', 'Publicación eliminada exitosamente.');
+    }
+
+    private function storeImage(Request $request, Publicacion $post): ?string
+    {
+        if (!$request->hasFile('imagen')) {
+            return null;
+        }
+
+        $directory = "publicaciones/{$post->id}";
+        $image = $request->file('imagen');
+        $path = $image->storePubliclyAs(
+            $directory,
+            'imagen.' . $image->extension(),
+            'public'
+        );
+
+        if ($path === false) {
+            throw ValidationException::withMessages([
+                'imagen' => 'No fue posible guardar la imagen. Inténtalo nuevamente.',
+            ]);
+        }
+
+        $oldImages = array_diff(
+            Storage::disk('public')->files($directory),
+            [$path]
+        );
+        Storage::disk('public')->delete($oldImages);
+
+        return $path;
     }
 }

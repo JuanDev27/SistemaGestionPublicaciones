@@ -11,28 +11,53 @@ class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable;
 
+    protected $table = 'usuarios';
+    public $timestamps = false;
+
     public function publicaciones()
     {
         return $this->hasMany(Publicacion::class, 'usuario_id');
     }
 
     protected $fillable = [
-        'name',
-        'lastname',
+        'nombres',
+        'apellidos',
+        'correo',
+        'telefono',
+        'contrasena_hash',
+        'programa_academico',
         'codigo_estudiantil',
-        'facultad',
-        'email',
-        'password',
-        'phone',
+        'rol',
+        'estado',
+        'fecha_registro',
     ];
 
     protected $hidden = [
-        'password',
-        'remember_token',
+        'contrasena_hash',
     ];
 
     protected $casts = [
-        'email_verified_at' => 'datetime',
-        'password' => 'hashed',
+        'contrasena_hash' => 'hashed',
+        'fecha_registro' => 'datetime',
     ];
+
+    public function getAuthPassword()
+    {
+        return $this->contrasena_hash;
+    }
+
+    public function getEmailForPasswordReset()
+    {
+        return $this->correo;
+    }
+
+    public function routeNotificationForMail($notification = null)
+    {
+        return $this->correo;
+    }
+
+    public function getRememberTokenName()
+    {
+        return '';
+    }
 }
