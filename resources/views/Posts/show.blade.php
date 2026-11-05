@@ -22,8 +22,19 @@
             <div class="card-body" id="contenido">
                 <p><strong>ID:</strong> {{ $post->id }}</p>
                 <p><strong>Título:</strong> {{ $post->titulo }}</p>
-                <p><strong>Contenido:</strong> {{ $post->contenido }}</p>
-                <p><strong>Fecha de Creación:</strong> {{ $post->created_at->format('d-m-Y H:i') }}</p>
+                <p><strong>Descripción:</strong> {{ $post->descripcion }}</p>
+                <p><strong>Categoría:</strong> {{ $post->categoria->nombre ?? 'Sin categoría' }}</p>
+                <p><strong>Lugar:</strong> {{ $post->lugar->nombre ?? 'Sin lugar' }}</p>
+                <p><strong>Detalle del lugar:</strong> {{ $post->detalle_lugar ?? 'No registrado' }}</p>
+                <p>
+                    <strong>Fecha del extravío:</strong>
+                    {{ $post->fecha_evento?->format('d/m/Y') ?? 'Sin fecha' }}
+                </p>
+                <p>
+                    <strong>Hora:</strong>
+                    {{ $post->hora ? \Illuminate\Support\Carbon::parse($post->hora)->format('H:i') : 'No registrada' }}
+                </p>
+                <p><strong>Custodia:</strong> {{ $post->custodia ?? 'No registrada' }}</p>
                 <p><strong>Subido por:</strong> {{ $post->user->name }} ({{ $post->user->email }})</p>
             </div>
             <div class="card-footer">

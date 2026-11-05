@@ -14,9 +14,9 @@ class User extends Authenticatable
 
 
     public function publicaciones()
-{
-    return $this->hasMany(Publicacion::class);/*Un user muchas publicaciones */
-}
+    {
+        return $this->hasMany(Publicacion::class, 'usuario_id');
+    }
 
     /**
      * The attributes that are mass assignable.

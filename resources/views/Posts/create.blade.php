@@ -18,7 +18,7 @@
         <form action="{{ route('posts.store') }}" method="POST">
             @csrf 
             <!-- Campos de la publicación mediante componentes Blade -->
-            <x-campos-publicacion />
+            <x-campos-publicacion :categorias="$categorias" :lugares="$lugares" />
             <button type="submit" class="btn btn-primary">Crear Publicación</button>
         </form>
 

@@ -19,7 +19,7 @@
             @method('PUT')
 
             <!-- Campos de la publicación mediante componentes Blade -->
-            <x-campos-publicacion :post="$post" />
+            <x-campos-publicacion :post="$post" :categorias="$categorias" :lugares="$lugares" />
 
             <button type="submit" class="btn btn-primary">Guardar cambios</button>
         </form>

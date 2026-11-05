@@ -172,12 +172,9 @@
                 </div>
 
                 <div class="field">
-                    <label for="phone">
-                        Teléfono
-                        <span class="optional">(opcional)</span>
-                    </label>
+                    <label for="phone">Teléfono</label>
                     <input id="phone" type="tel" name="phone" value="{{ old('phone') }}"
-                        placeholder="Ej. 300 123 4567" autocomplete="tel" inputmode="tel"
+                        placeholder="Ej. 300 123 4567" autocomplete="tel" inputmode="tel" required
                         @error('phone') aria-invalid="true" @enderror>
                     @error('phone')
                         <p class="field-error">

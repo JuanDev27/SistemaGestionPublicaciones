@@ -16,8 +16,22 @@
             @foreach ($publicaciones as $post)
                 <h2>{{ $post->titulo }}</h2>
                 <div id="contenido">
-                    <p>{{ $post->contenido }}</p>
-                    <p>Fecha: {{ $post->created_at }}</p>
+                    <p><strong>Descripción:</strong> {{ $post->descripcion }}</p>
+                    <p><strong>Categoría:</strong> {{ $post->categoria->nombre ?? 'Sin categoría' }}</p>
+                    <p>
+                        <strong>Lugar:</strong> {{ $post->lugar->nombre ?? 'Sin lugar' }}
+                        @if ($post->detalle_lugar)
+                            — {{ $post->detalle_lugar }}
+                        @endif
+                    </p>
+                    <p>
+                        <strong>Fecha del extravío:</strong>
+                        {{ $post->fecha_evento?->format('d/m/Y') ?? 'Sin fecha' }}
+                        @if ($post->hora)
+                            — {{ \Illuminate\Support\Carbon::parse($post->hora)->format('H:i') }}
+                        @endif
+                    </p>
+                    <p><strong>Custodia:</strong> {{ $post->custodia ?? 'No registrada' }}</p>
                     <p>Autor: {{ $post->user->email }}</p>
 
                     @if($post->usuario_id === Auth::id())
