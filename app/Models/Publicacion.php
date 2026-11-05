@@ -10,27 +10,21 @@ class Publicacion extends Model
     use HasFactory;
 
     protected $table = 'publicaciones';
-    public $timestamps = false;
 
     protected $fillable = [
-        'tipo',
         'titulo',
-        'descripcion',
-        'categoria_id',
-        'lugar_id',
-        'lugar_detalle',
-        'fecha_evento',
-        'hora_evento',
-        'custodia_actual',
-        'estado',
-        'fecha_creacion',
-        'fecha_estado',
+        'contenido',
+        'categoria',
+        'imagen',
+        'lugar',
+        'fecha_hallazgo',
+        'encontrado',
+        'usuario_id',
     ];
 
     protected $casts = [
-        'fecha_evento' => 'date',
-        'fecha_creacion' => 'datetime',
-        'fecha_estado' => 'datetime',
+        'fecha_hallazgo' => 'date',
+        'encontrado' => 'boolean',
     ];
 
     public function user()
