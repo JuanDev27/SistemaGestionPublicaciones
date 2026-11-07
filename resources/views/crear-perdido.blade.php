@@ -332,7 +332,7 @@
             Completa todos los campos obligatorios antes de continuar.
         </div>
 
-        <form id="form-crear-perdido" action="{{ route('posts.store') }}" method="POST"
+        <form id="form-crear-perdido" action="{{ route('posts.lost.store') }}" method="POST"
             enctype="multipart/form-data" novalidate>
             @csrf
 

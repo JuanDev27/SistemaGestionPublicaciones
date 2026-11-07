@@ -29,7 +29,7 @@ class CreateNewUser implements CreatesNewUsers
                 'max:50',
                 Rule::unique(User::class, 'codigo_estudiantil'),
             ],
-            'facultad' => ['required', 'string', 'max:255'],
+            'programa_academico' => ['required', 'string', 'max:255'],
             'phone' => ['nullable', 'string', 'max:20'],
             'email' => [
                 'required',
@@ -52,7 +52,7 @@ class CreateNewUser implements CreatesNewUsers
             'correo' => strtolower($input['email']),
             'telefono' => $input['phone'] ?? null,
             'contrasena_hash' => Hash::make($input['password']),
-            'programa_academico' => $input['facultad'],
+            'programa_academico' => $input['programa_academico'],
             'codigo_estudiantil' => $input['codigo_estudiantil'],
             'rol' => 'estudiante',
             'estado' => 'ACTIVO',

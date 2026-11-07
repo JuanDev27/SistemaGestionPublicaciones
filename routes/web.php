@@ -34,9 +34,14 @@ Route::middleware(['auth'])->group(function () {
         return view('crear-perdido');
     })->name('posts.lost.create');
 
+    Route::post('/reportar-perdido', [PostController::class, 'storePerdido'])
+        ->name('posts.lost.store');
+
     Route::get('/posts/create', [PostController::class, 'create'])->name('posts.create');
 
-    
+    Route::post('/posts/encontrados', [PostController::class, 'storeEncontrado'])
+        ->name('posts.found.store');
+
     Route::post('/posts', [PostController::class, 'store'])->name('posts.store');
 
 

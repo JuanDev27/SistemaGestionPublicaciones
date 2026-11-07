@@ -14,8 +14,14 @@ class Publicacion extends Model
     public $timestamps = false;
 
     protected $fillable = [
-        'tipo',
         'titulo',
+        'contenido',
+        'categoria',
+        'imagen',
+        'lugar',
+        'fecha_hallazgo',
+        'encontrado',
+        'tipo',
         'descripcion',
         'categoria_id',
         'lugar_id',
@@ -29,6 +35,8 @@ class Publicacion extends Model
     ];
 
     protected $casts = [
+        'fecha_hallazgo' => 'date',
+        'encontrado' => 'boolean',
         'fecha_evento' => 'date',
         'fecha_creacion' => 'datetime',
         'fecha_estado' => 'datetime',

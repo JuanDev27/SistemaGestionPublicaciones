@@ -24,6 +24,10 @@
             </div>
         </section>
 
+        @if (session('error'))
+            <div class="form-errors" role="alert">{{ session('error') }}</div>
+        @endif
+
         @if ($errors->any())
             <div class="form-errors" role="alert">
                 <strong>Revisa la información:</strong>
@@ -35,7 +39,7 @@
             </div>
         @endif
 
-        <form action="{{ route('posts.store') }}" method="POST" enctype="multipart/form-data" class="found-form">
+        <form action="{{ route('posts.found.store') }}" method="POST" enctype="multipart/form-data" class="found-form">
             @csrf
 
             <div class="form-grid">

@@ -27,6 +27,55 @@ class PostController extends Controller
         return view('posts.create');
     }
 
+    public function storePerdido(Request $request)
+    {
+        $validated = $request->validate([
+            'titulo' => ['required', 'string', 'max:255'],
+            'descripcion' => ['required', 'string'],
+            'categoria_id' => ['required', 'integer', 'min:1'],
+            'lugar_id' => ['required', 'integer', 'min:1'],
+            'lugar_detalle' => ['nullable', 'string', 'max:255'],
+            'fecha_evento' => ['required', 'date', 'before_or_equal:today'],
+            'hora_evento' => ['nullable', 'date_format:H:i'],
+            'imagen' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
+        ]);
+
+        return $this->savePublication(
+            $request,
+            $validated,
+            'PERDIDO',
+            'Objeto extraviado registrado exitosamente.'
+        );
+    }
+
+    public function storeEncontrado(Request $request)
+    {
+        $validated = $request->validate([
+            'titulo' => ['required', 'string', 'max:255'],
+            'descripcion' => ['required', 'string'],
+            'categoria_id' => ['required', 'integer', 'min:1'],
+            'lugar_id' => ['required', 'integer', 'min:1'],
+            'lugar_detalle' => ['nullable', 'string', 'max:255'],
+            'fecha_evento' => ['required', 'date', 'before_or_equal:today'],
+            'hora_evento' => ['nullable', 'date_format:H:i'],
+            'custodia_actual' => ['required', 'string', 'max:255'],
+            'imagen' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
+        ], [
+            'custodia_actual.required' => 'Indica quién tiene actualmente el objeto hallado.',
+            'imagen.required' => 'Debes adjuntar una imagen del objeto hallado.',
+            'imagen.image' => 'El archivo adjunto debe ser una imagen.',
+            'imagen.mimes' => 'La imagen debe ser JPG, JPEG, PNG o WEBP.',
+            'imagen.max' => 'La imagen no puede superar los 5 MB.',
+        ]);
+
+        return $this->savePublication(
+            $request,
+            $validated,
+            'HALLADO',
+            'Hallazgo publicado exitosamente.'
+        );
+    }
+
     public function store(Request $request)
     {
         $type = $request->input('tipo', 'PERDIDO');
@@ -91,7 +140,17 @@ class PostController extends Controller
                 Storage::disk('public')->delete($imagePath);
             }
 
-            throw $exception;
+            report($exception);
+
+            $message = 'No fue posible guardar la publicación. Inténtalo nuevamente.';
+
+            if ($request->expectsJson()) {
+                return response()->json(['message' => $message], 500);
+            }
+
+            return redirect()->back()
+                ->withInput()
+                ->with('error', $message);
         }
 
         if ($request->expectsJson()) {
@@ -208,6 +267,62 @@ class PostController extends Controller
 
         return redirect()->route('posts.index')
             ->with('success', 'Publicación eliminada exitosamente.');
+    }
+
+    private function savePublication(Request $request, array $attributes, string $type, string $message)
+    {
+        $imagePath = null;
+
+        try {
+            $post = DB::transaction(function () use ($request, $attributes, $type, &$imagePath) {
+                $post = new Publicacion();
+                $post->usuario_id = Auth::id();
+                $post->fill([
+                    'tipo' => $type,
+                    'titulo' => $attributes['titulo'],
+                    'descripcion' => $attributes['descripcion'],
+                    'categoria_id' => $attributes['categoria_id'],
+                    'lugar_id' => $attributes['lugar_id'],
+                    'lugar_detalle' => $attributes['lugar_detalle'] ?? null,
+                    'fecha_evento' => $attributes['fecha_evento'],
+                    'hora_evento' => $attributes['hora_evento'] ?? null,
+                    'custodia_actual' => $attributes['custodia_actual'] ?? null,
+                    'estado' => 'ACTIVA',
+                    'fecha_creacion' => now(),
+                    'fecha_estado' => now(),
+                ]);
+                $post->save();
+
+                $imagePath = $this->storeImage($request, $post);
+
+                return $post;
+            });
+        } catch (Throwable $exception) {
+            if ($imagePath) {
+                Storage::disk('public')->delete($imagePath);
+            }
+
+            report($exception);
+
+            $errorMessage = 'No fue posible guardar la publicación. Inténtalo nuevamente.';
+
+            if ($request->expectsJson()) {
+                return response()->json(['message' => $errorMessage], 500);
+            }
+
+            return redirect()->back()
+                ->withInput()
+                ->with('error', $errorMessage);
+        }
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => $message,
+                'data' => $post,
+            ], 201);
+        }
+
+        return redirect()->route('posts.index')->with('success', $message);
     }
 
     private function storeImage(Request $request, Publicacion $post): ?string
