@@ -22,8 +22,8 @@
             <div class="card-body" id="contenido">
                 <p><strong>ID:</strong> {{ $post->id }}</p>
                 <p><strong>Título:</strong> {{ $post->titulo }}</p>
-                <p><strong>Contenido:</strong> {{ $post->contenido }}</p>
-                <p><strong>Fecha de Creación:</strong> {{ $post->created_at->format('d-m-Y H:i') }}</p>
+                <p><strong>Descripción:</strong> {{ $post->descripcion }}</p>
+                <p><strong>Fecha de Creación:</strong> {{ optional($post->fecha_creacion)->format('d-m-Y H:i') }}</p>
                 <p><strong>Subido por:</strong> {{ $post->user->nombres }} ({{ $post->user->correo }})</p>
             </div>
             <div class="card-footer">

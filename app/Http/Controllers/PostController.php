@@ -19,24 +19,32 @@ class PostController extends Controller
             ->orderByDesc('fecha_creacion')
             ->get();
 
-        return view('posts.index', compact('publicaciones'));
+        return view('posts.index', array_merge(
+            ['publicaciones' => $publicaciones],
+            $this->publicationOptions()
+        ));
     }
 
     public function create()
     {
-        return view('posts.create');
+        return view('posts.create', $this->publicationOptions());
+    }
+
+    public function createPerdido()
+    {
+        return view('crear-perdido', $this->publicationOptions());
     }
 
     public function storePerdido(Request $request)
     {
         $validated = $request->validate([
-            'titulo' => ['required', 'string', 'max:255'],
+            'titulo' => ['required', 'string', 'max:80'],
             'descripcion' => ['required', 'string'],
-            'categoria_id' => ['required', 'integer', 'min:1'],
-            'lugar_id' => ['required', 'integer', 'min:1'],
-            'lugar_detalle' => ['nullable', 'string', 'max:255'],
+            'categoria_id' => ['required', 'integer', Rule::exists('categorias', 'id')],
+            'lugar_id' => ['required', 'integer', Rule::exists('lugares', 'id')],
+            'lugar_detalle' => ['nullable', 'string', 'max:150'],
             'fecha_evento' => ['required', 'date', 'before_or_equal:today'],
-            'hora_evento' => ['nullable', 'date_format:H:i'],
+            'hora_evento' => ['required', 'date_format:H:i'],
             'imagen' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
         ]);
 
@@ -51,14 +59,14 @@ class PostController extends Controller
     public function storeEncontrado(Request $request)
     {
         $validated = $request->validate([
-            'titulo' => ['required', 'string', 'max:255'],
+            'titulo' => ['required', 'string', 'max:80'],
             'descripcion' => ['required', 'string'],
-            'categoria_id' => ['required', 'integer', 'min:1'],
-            'lugar_id' => ['required', 'integer', 'min:1'],
-            'lugar_detalle' => ['nullable', 'string', 'max:255'],
+            'categoria_id' => ['required', 'integer', Rule::exists('categorias', 'id')],
+            'lugar_id' => ['required', 'integer', Rule::exists('lugares', 'id')],
+            'lugar_detalle' => ['nullable', 'string', 'max:150'],
             'fecha_evento' => ['required', 'date', 'before_or_equal:today'],
-            'hora_evento' => ['nullable', 'date_format:H:i'],
-            'custodia_actual' => ['required', 'string', 'max:255'],
+            'hora_evento' => ['required', 'date_format:H:i'],
+            'custodia_actual' => ['required', 'string', 'max:100'],
             'imagen' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
         ], [
             'custodia_actual.required' => 'Indica quién tiene actualmente el objeto hallado.',
@@ -71,7 +79,7 @@ class PostController extends Controller
         return $this->savePublication(
             $request,
             $validated,
-            'HALLADO',
+            'ENCONTRADO',
             'Hallazgo publicado exitosamente.'
         );
     }
@@ -80,22 +88,22 @@ class PostController extends Controller
     {
         $type = $request->input('tipo', 'PERDIDO');
         $validated = $request->validate([
-            'tipo' => ['nullable', Rule::in(['PERDIDO', 'HALLADO'])],
-            'titulo' => ['required', 'string', 'max:255'],
+            'tipo' => ['nullable', Rule::in(['PERDIDO', 'ENCONTRADO'])],
+            'titulo' => ['required', 'string', 'max:80'],
             'descripcion' => ['required', 'string'],
-            'categoria_id' => ['required', 'integer', 'min:1'],
-            'lugar_id' => ['required', 'integer', 'min:1'],
-            'lugar_detalle' => ['nullable', 'string', 'max:255'],
+            'categoria_id' => ['required', 'integer', Rule::exists('categorias', 'id')],
+            'lugar_id' => ['required', 'integer', Rule::exists('lugares', 'id')],
+            'lugar_detalle' => ['nullable', 'string', 'max:150'],
             'fecha_evento' => ['required', 'date'],
-            'hora_evento' => ['nullable', 'date_format:H:i'],
+            'hora_evento' => ['required', 'date_format:H:i'],
             'custodia_actual' => [
-                Rule::requiredIf($type === 'HALLADO'),
+                Rule::requiredIf($type === 'ENCONTRADO'),
                 'nullable',
                 'string',
-                'max:255',
+                'max:100',
             ],
             'imagen' => [
-                Rule::requiredIf($type === 'HALLADO'),
+                Rule::requiredIf($type === 'ENCONTRADO'),
                 'nullable',
                 'image',
                 'mimes:jpg,jpeg,png,webp',
@@ -123,7 +131,7 @@ class PostController extends Controller
                     'lugar_id' => $validated['lugar_id'],
                     'lugar_detalle' => $validated['lugar_detalle'] ?? null,
                     'fecha_evento' => $validated['fecha_evento'],
-                    'hora_evento' => $validated['hora_evento'] ?? null,
+                    'hora_evento' => $validated['hora_evento'],
                     'custodia_actual' => $validated['custodia_actual'] ?? null,
                     'estado' => 'ACTIVA',
                     'fecha_creacion' => now(),
@@ -198,22 +206,22 @@ class PostController extends Controller
 
         $type = $request->input('tipo', $publicacion->tipo);
         $validated = $request->validate([
-            'tipo' => ['sometimes', 'required', Rule::in(['PERDIDO', 'HALLADO'])],
-            'titulo' => ['sometimes', 'required', 'string', 'max:255'],
+            'tipo' => ['sometimes', 'required', Rule::in(['PERDIDO', 'ENCONTRADO'])],
+            'titulo' => ['sometimes', 'required', 'string', 'max:80'],
             'descripcion' => ['sometimes', 'required', 'string'],
-            'categoria_id' => ['sometimes', 'required', 'integer', 'min:1'],
-            'lugar_id' => ['sometimes', 'required', 'integer', 'min:1'],
-            'lugar_detalle' => ['sometimes', 'nullable', 'string', 'max:255'],
+            'categoria_id' => ['sometimes', 'required', 'integer', Rule::exists('categorias', 'id')],
+            'lugar_id' => ['sometimes', 'required', 'integer', Rule::exists('lugares', 'id')],
+            'lugar_detalle' => ['sometimes', 'nullable', 'string', 'max:150'],
             'fecha_evento' => ['sometimes', 'required', 'date'],
-            'hora_evento' => ['sometimes', 'nullable', 'date_format:H:i'],
+            'hora_evento' => ['sometimes', 'required', 'date_format:H:i'],
             'custodia_actual' => [
-                Rule::requiredIf($type === 'HALLADO' && blank($publicacion->custodia_actual)),
+                Rule::requiredIf($type === 'ENCONTRADO' && blank($publicacion->custodia_actual)),
                 'nullable',
                 'string',
-                'max:255',
+                'max:100',
             ],
             'imagen' => [
-                Rule::requiredIf($type === 'HALLADO' && !$publicacion->imagen),
+                Rule::requiredIf($type === 'ENCONTRADO' && !$publicacion->imagen),
                 'nullable',
                 'image',
                 'mimes:jpg,jpeg,png,webp',
@@ -285,7 +293,7 @@ class PostController extends Controller
                     'lugar_id' => $attributes['lugar_id'],
                     'lugar_detalle' => $attributes['lugar_detalle'] ?? null,
                     'fecha_evento' => $attributes['fecha_evento'],
-                    'hora_evento' => $attributes['hora_evento'] ?? null,
+                    'hora_evento' => $attributes['hora_evento'],
                     'custodia_actual' => $attributes['custodia_actual'] ?? null,
                     'estado' => 'ACTIVA',
                     'fecha_creacion' => now(),
@@ -352,5 +360,13 @@ class PostController extends Controller
         Storage::disk('public')->delete($oldImages);
 
         return $path;
+    }
+
+    private function publicationOptions(): array
+    {
+        return [
+            'categories' => DB::table('categorias')->orderBy('id')->pluck('nombre', 'id'),
+            'places' => DB::table('lugares')->orderBy('id')->pluck('nombre', 'id'),
+        ];
     }
 }

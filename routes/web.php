@@ -30,9 +30,8 @@ Route::middleware(['web'])->group(function () {
 Route::middleware(['auth'])->group(function () {
     Route::get('/posts', [PostController::class, 'index'])->name('posts.index');
 
-    Route::get('/reportar-perdido', function () {
-        return view('crear-perdido');
-    })->name('posts.lost.create');
+    Route::get('/reportar-perdido', [PostController::class, 'createPerdido'])
+        ->name('posts.lost.create');
 
     Route::post('/reportar-perdido', [PostController::class, 'storePerdido'])
         ->name('posts.lost.store');

@@ -44,16 +44,18 @@
                             <div class="post-image post-image-empty">Sin imagen</div>
                         @endif
                         <div class="post-body">
-                            <div class="post-status">{{ $post->encontrado ? 'Encontrado' : 'Reportado' }}</div>
+                            <div class="post-status">
+                                {{ $post->tipo === 'PERDIDO' ? 'Perdido' : ($post->tipo === 'ENCONTRADO' ? 'Encontrado' : 'Reportado') }}
+                            </div>
                             <h3>{{ $post->titulo }}</h3>
-                            <p>{{ $post->contenido }}</p>
+                            <p>{{ $post->descripcion }}</p>
                             <dl>
-                                <div><dt>Lugar</dt><dd>{{ $post->lugar }}</dd></div>
-                                <div><dt>Fecha</dt><dd>{{ optional($post->fecha_hallazgo)->format('d/m/Y') }}</dd></div>
+                                <div><dt>Lugar</dt><dd>{{ $post->lugar ?? ($places[$post->lugar_id] ?? ($post->lugar_detalle ?: '')) }}</dd></div>
+                                <div><dt>Fecha</dt><dd>{{ optional($post->fecha_evento ?? $post->fecha_hallazgo)->format('d/m/Y') }}</dd></div>
                                 <div><dt>Publicado por</dt><dd>{{ $post->user->name ?? $post->user->email }}</dd></div>
                             </dl>
                             <div class="post-footer">
-                                <span class="category-tag">{{ $post->categoria }}</span>
+                                <span class="category-tag">{{ $post->categoria ?? ($categories[$post->categoria_id] ?? '') }}</span>
                                 @if ($post->usuario_id === Auth::id())
                                     <a href="{{ route('posts.edit', $post->id) }}">Editar</a>
                                 @endif

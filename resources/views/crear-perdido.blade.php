@@ -338,42 +338,53 @@
 
             <div class="form-grid">
                 <div class="form-field">
-                    <label for="categoria">Categoría <span class="required-mark">*</span></label>
-                    <select id="categoria" name="categoria"
-                        class="form-select @error('categoria') is-invalid @enderror" required
-                        @error('categoria') aria-invalid="true" @enderror>
+                    <label for="categoria_id">Categoría <span class="required-mark">*</span></label>
+                    <select id="categoria_id" name="categoria_id"
+                        class="form-select @error('categoria_id') is-invalid @enderror" required
+                        @error('categoria_id') aria-invalid="true" @enderror>
                         <option value="">Selecciona una categoría</option>
-                        @foreach (['Electrónica', 'Documentos', 'Llaves', 'Ropa y accesorios', 'Mochilas y bolsos', 'Otros'] as $categoria)
-                            <option value="{{ $categoria }}" @selected(old('categoria') === $categoria)>{{ $categoria }}</option>
+                        @foreach ($categories as $id => $name)
+                            <option value="{{ $id }}" @selected((string) old('categoria_id') === (string) $id)>{{ $id }}. {{ $name }}</option>
                         @endforeach
                     </select>
-                    @error('categoria')
+                    @error('categoria_id')
                         <p class="field-error">{{ $message }}</p>
                     @enderror
                 </div>
 
                 <div class="form-field">
-                    <label for="ubicacion">Ubicación <span class="required-mark">*</span></label>
-                    <select id="ubicacion" name="ubicacion"
-                        class="form-select @error('ubicacion') is-invalid @enderror" required
-                        @error('ubicacion') aria-invalid="true" @enderror>
-                        <option value="">Selecciona una ubicación</option>
-                        @foreach (['Biblioteca', 'Cafetería', 'Bloques académicos', 'Laboratorios', 'Zonas deportivas', 'Parqueadero', 'Otra'] as $ubicacion)
-                            <option value="{{ $ubicacion }}" @selected(old('ubicacion') === $ubicacion)>{{ $ubicacion }}</option>
+                    <label for="lugar_id">Lugar <span class="required-mark">*</span></label>
+                    <select id="lugar_id" name="lugar_id"
+                        class="form-select @error('lugar_id') is-invalid @enderror" required
+                        @error('lugar_id') aria-invalid="true" @enderror>
+                        <option value="">Selecciona un lugar</option>
+                        @foreach ($places as $id => $name)
+                            <option value="{{ $id }}" @selected((string) old('lugar_id') === (string) $id)>{{ $id }}. {{ $name }}</option>
                         @endforeach
                     </select>
-                    @error('ubicacion')
+                    @error('lugar_id')
                         <p class="field-error">{{ $message }}</p>
                     @enderror
                 </div>
 
                 <div class="form-field">
-                    <label for="fecha">Fecha de extravío <span class="required-mark">*</span></label>
-                    <input type="date" id="fecha" name="fecha"
-                        class="form-control @error('fecha') is-invalid @enderror" value="{{ old('fecha') }}"
+                    <label for="fecha_evento">Fecha de extravío <span class="required-mark">*</span></label>
+                    <input type="date" id="fecha_evento" name="fecha_evento"
+                        class="form-control @error('fecha_evento') is-invalid @enderror" value="{{ old('fecha_evento') }}"
                         max="{{ now()->toDateString() }}" required
-                        @error('fecha') aria-invalid="true" @enderror>
-                    @error('fecha')
+                        @error('fecha_evento') aria-invalid="true" @enderror>
+                    @error('fecha_evento')
+                        <p class="field-error">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div class="form-field">
+                    <label for="hora_evento">Hora de extravío <span class="required-mark">*</span></label>
+                    <input type="time" id="hora_evento" name="hora_evento"
+                        class="form-control @error('hora_evento') is-invalid @enderror"
+                        value="{{ old('hora_evento', now()->format('H:i')) }}"
+                        required @error('hora_evento') aria-invalid="true" @enderror>
+                    @error('hora_evento')
                         <p class="field-error">{{ $message }}</p>
                     @enderror
                 </div>
@@ -382,7 +393,7 @@
                     <label for="titulo">Título <span class="required-mark">*</span></label>
                     <input type="text" id="titulo" name="titulo"
                         class="form-control @error('titulo') is-invalid @enderror" value="{{ old('titulo') }}"
-                        placeholder="Ej. Mochila negra con cargador" maxlength="255" required
+                        placeholder="Ej. Mochila negra con cargador" maxlength="80" required
                         @error('titulo') aria-invalid="true" @enderror>
                     @error('titulo')
                         <p class="field-error">{{ $message }}</p>
@@ -390,11 +401,23 @@
                 </div>
 
                 <div class="form-field form-field-full">
-                    <label for="contenido">Descripción y características <span class="required-mark">*</span></label>
-                    <textarea id="contenido" name="contenido" class="form-control @error('contenido') is-invalid @enderror"
+                    <label for="descripcion">Descripción y características <span class="required-mark">*</span></label>
+                    <textarea id="descripcion" name="descripcion" class="form-control @error('descripcion') is-invalid @enderror"
                         rows="5" placeholder="Describe el color, la marca, el material y cualquier detalle que ayude a identificarlo."
-                        required @error('contenido') aria-invalid="true" @enderror>{{ old('contenido') }}</textarea>
-                    @error('contenido')
+                        required @error('descripcion') aria-invalid="true" @enderror>{{ old('descripcion') }}</textarea>
+                    @error('descripcion')
+                        <p class="field-error">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div class="form-field form-field-full">
+                    <label for="lugar_detalle">Detalle del lugar <span class="optional-mark">(opcional)</span></label>
+                    <input type="text" id="lugar_detalle" name="lugar_detalle"
+                        class="form-control @error('lugar_detalle') is-invalid @enderror"
+                        value="{{ old('lugar_detalle') }}"
+                        placeholder="Ej. Cerca de la entrada principal" maxlength="150"
+                        @error('lugar_detalle') aria-invalid="true" @enderror>
+                    @error('lugar_detalle')
                         <p class="field-error">{{ $message }}</p>
                     @enderror
                 </div>
