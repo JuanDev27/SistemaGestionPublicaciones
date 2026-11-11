@@ -24,7 +24,7 @@ class User extends Authenticatable
         'apellidos',
         'correo',
         'telefono',
-        'contrasena_hash',
+        'password',
         'programa_academico',
         'codigo_estudiantil',
         'rol',
@@ -33,17 +33,17 @@ class User extends Authenticatable
     ];
 
     protected $hidden = [
-        'contrasena_hash',
+        'password',
     ];
 
     protected $casts = [
-        'contrasena_hash' => 'hashed',
+        'password' => 'hashed',
         'fecha_registro' => 'datetime',
     ];
 
     public function getAuthPassword()
     {
-        return $this->contrasena_hash;
+        return $this->password;
     }
 
     public function getEmailForPasswordReset()

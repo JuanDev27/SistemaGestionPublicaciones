@@ -68,7 +68,7 @@ class FortifyServiceProvider extends ServiceProvider
         Fortify::authenticateUsing(function (Request $request) {
             $user = User::where('correo', Str::lower($request->input('email')))->first();
 
-            if ($user && $user->estado === 'ACTIVO' && Hash::check($request->password, $user->contrasena_hash)) {
+            if ($user && $user->estado === 'ACTIVO' && Hash::check($request->password, $user->password)) {
                 $request->session()->put('rol_usuario', $user->rol);
                 $request->session()->put('ultima_conexion', now());
 
