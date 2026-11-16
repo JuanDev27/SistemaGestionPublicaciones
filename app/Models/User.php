@@ -19,6 +19,21 @@ class User extends Authenticatable
         return $this->hasMany(Publicacion::class, 'usuario_id');
     }
 
+    public function startedConversations()
+    {
+        return $this->hasMany(Conversation::class, 'iniciador_id');
+    }
+
+    public function sentMessages()
+    {
+        return $this->hasMany(Message::class, 'remitente_id');
+    }
+
+    public function notifications()
+    {
+        return $this->hasMany(Notification::class, 'usuario_id');
+    }
+
     protected $fillable = [
         'nombres',
         'apellidos',
