@@ -60,4 +60,9 @@ class Publicacion extends Model
     {
         return $this->belongsTo(User::class, 'usuario_id');
     }
+
+    public function conversations()
+    {
+        return $this->hasMany(Conversation::class, 'publicacion_id');
+    }
 }
