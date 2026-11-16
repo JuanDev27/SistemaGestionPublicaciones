@@ -4,23 +4,77 @@ namespace App\Http\Controllers;
 
 use App\Models\Publicacion;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Throwable;
 
 class PostController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $publicaciones = Publicacion::with('user')
+        $validator = Validator::make($request->query(), [
+            'search' => ['nullable', 'string', 'max:255'],
+            'categoria_id' => ['nullable', 'integer', Rule::exists('categorias', 'id')],
+            'lugar_id' => ['nullable', 'integer', Rule::exists('lugares', 'id')],
+            'fecha_desde' => ['nullable', 'date'],
+            'fecha_hasta' => ['nullable', 'date', 'after_or_equal:fecha_desde'],
+        ]);
+        if ($validator->fails()) {
+            return redirect()->route('posts.index')->withErrors($validator);
+        }
+
+        $validated = $validator->validated();
+        if (
+            !empty($validated['fecha_desde'])
+            && !empty($validated['fecha_hasta'])
+            && Carbon::parse($validated['fecha_hasta'])->lt(Carbon::parse($validated['fecha_desde']))
+        ) {
+            return redirect()->route('posts.index')->withErrors([
+                'fecha_hasta' => 'La fecha final debe ser igual o posterior a la fecha inicial.',
+            ]);
+        }
+
+        $search = trim($validated['search'] ?? '');
+
+        $query = Publicacion::with('user')
+            ->when($search !== '', function ($query) use ($search) {
+                foreach (preg_split('/\s+/', mb_strtolower($search)) as $keyword) {
+                    $keyword = str_replace(['!', '%', '_'], ['!!', '!%', '!_'], $keyword);
+                    $pattern = '%' . $keyword . '%';
+
+                    $query->where(function ($matches) use ($pattern) {
+                        $matches->whereRaw("LOWER(titulo) LIKE ? ESCAPE '!'", [$pattern])
+                            ->orWhereRaw("LOWER(descripcion) LIKE ? ESCAPE '!'", [$pattern]);
+                    });
+                }
+            })
+            ->when(!empty($validated['categoria_id']), function ($query) use ($validated) {
+                $query->where('categoria_id', $validated['categoria_id']);
+            })
+            ->when(!empty($validated['lugar_id']), function ($query) use ($validated) {
+                $query->where('lugar_id', $validated['lugar_id']);
+            })
+            ->when(!empty($validated['fecha_desde']), function ($query) use ($validated) {
+                $query->whereDate('fecha_evento', '>=', $validated['fecha_desde']);
+            })
+            ->when(!empty($validated['fecha_hasta']), function ($query) use ($validated) {
+                $query->whereDate('fecha_evento', '<=', $validated['fecha_hasta']);
+            })
             ->orderByDesc('fecha_creacion')
-            ->get();
+            ->orderByDesc('id');
+        $publicaciones = $query->paginate(9)->withQueryString();
 
         return view('posts.index', array_merge(
-            ['publicaciones' => $publicaciones],
+            [
+                'publicaciones' => $publicaciones,
+                'search' => $search,
+                'filters' => $validated,
+            ],
             $this->publicationOptions()
         ));
     }

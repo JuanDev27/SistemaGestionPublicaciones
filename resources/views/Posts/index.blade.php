@@ -31,8 +31,74 @@
     <main class="posts-content">
         <div class="list-heading">
             <h2>Hallazgos recientes</h2>
-            <span>{{ $publicaciones->count() }} publicaciones</span>
+            <span>{{ $publicaciones->total() }} publicaciones</span>
         </div>
+
+        <form class="publication-filters" method="GET" action="{{ route('posts.index') }}" role="search">
+            <div class="filter-search">
+                <label class="sr-only" for="publication-search">Buscar publicaciones</label>
+                <input
+                    id="publication-search"
+                    name="search"
+                    type="search"
+                    value="{{ $search }}"
+                    placeholder="Buscar por objeto o palabra clave"
+                    autocomplete="off"
+                >
+                <button type="submit" aria-label="Buscar">🔍</button>
+            </div>
+            <div class="filter-fields">
+                <div class="filter-field">
+                    <label for="filter-category">Categoría</label>
+                    <select id="filter-category" name="categoria_id">
+                        <option value="">Todas las categorías</option>
+                        @foreach ($categories as $id => $name)
+                            <option value="{{ $id }}" @selected(($filters['categoria_id'] ?? '') == $id)>{{ $name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="filter-field">
+                    <label for="filter-place">Ubicación</label>
+                    <select id="filter-place" name="lugar_id">
+                        <option value="">Todas las ubicaciones</option>
+                        @foreach ($places as $id => $name)
+                            <option value="{{ $id }}" @selected(($filters['lugar_id'] ?? '') == $id)>{{ $name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="filter-field">
+                    <label for="filter-date-from">Desde</label>
+                    <input
+                        id="filter-date-from"
+                        type="date"
+                        name="fecha_desde"
+                        value="{{ $filters['fecha_desde'] ?? '' }}"
+                    >
+                </div>
+                <div class="filter-field">
+                    <label for="filter-date-to">Hasta</label>
+                    <input
+                        id="filter-date-to"
+                        type="date"
+                        name="fecha_hasta"
+                        value="{{ $filters['fecha_hasta'] ?? '' }}"
+                    >
+                </div>
+            </div>
+            @if ($errors->any())
+                <div class="filter-error" role="alert">
+                    <ul>
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+            <div class="filter-actions">
+                <button type="submit" class="apply-filters-button">Aplicar filtros</button>
+                <a href="{{ route('posts.index') }}" class="clear-filters-link">Limpiar búsqueda y filtros</a>
+            </div>
+        </form>
 
         @if ($publicaciones->count())
             <div class="posts-grid">
@@ -56,16 +122,73 @@
                             </dl>
                             <div class="post-footer">
                                 <span class="category-tag">{{ $post->categoria ?? ($categories[$post->categoria_id] ?? '') }}</span>
-                                @if ($post->usuario_id === Auth::id())
-                                    <a href="{{ route('posts.edit', $post->id) }}">Editar</a>
-                                @endif
+                                <div class="post-links">
+                                    <a href="{{ route('posts.show', $post->id) }}">Ver detalle y contactar</a>
+                                    @if ($post->usuario_id === Auth::id())
+                                        <a href="{{ route('posts.edit', $post->id) }}">Editar</a>
+                                    @endif
+                                </div>
                             </div>
                         </div>
                     </article>
                 @endforeach
             </div>
+            @if ($publicaciones->hasPages())
+                <nav class="pagination" aria-label="Paginación de publicaciones">
+                    @if ($publicaciones->onFirstPage())
+                        <span class="pagination-disabled">Anterior</span>
+                    @else
+                        <a href="{{ $publicaciones->previousPageUrl() }}" rel="prev">Anterior</a>
+                    @endif
+
+                    @php
+                        $lastPage = $publicaciones->lastPage();
+                        $firstVisiblePage = max(1, $publicaciones->currentPage() - 2);
+                        $lastVisiblePage = min($lastPage, $publicaciones->currentPage() + 2);
+                    @endphp
+
+                    @if ($firstVisiblePage > 1)
+                        <a href="{{ $publicaciones->url(1) }}">1</a>
+                        @if ($firstVisiblePage > 2)
+                            <span aria-hidden="true">…</span>
+                        @endif
+                    @endif
+
+                    @foreach ($publicaciones->getUrlRange($firstVisiblePage, $lastVisiblePage) as $page => $url)
+                        @if ($page === $publicaciones->currentPage())
+                            <span aria-current="page" class="pagination-current">{{ $page }}</span>
+                        @else
+                            <a href="{{ $url }}">{{ $page }}</a>
+                        @endif
+                    @endforeach
+
+                    @if ($lastVisiblePage < $lastPage)
+                        @if ($lastVisiblePage < $lastPage - 1)
+                            <span aria-hidden="true">…</span>
+                        @endif
+                        <a href="{{ $publicaciones->url($lastPage) }}">{{ $lastPage }}</a>
+                    @endif
+
+                    @if ($publicaciones->hasMorePages())
+                        <a href="{{ $publicaciones->nextPageUrl() }}" rel="next">Siguiente</a>
+                    @else
+                        <span class="pagination-disabled">Siguiente</span>
+                    @endif
+                </nav>
+            @endif
         @else
-            <div class="empty-posts">Todavía no hay objetos publicados.</div>
+            <div class="empty-posts">
+                @if ($search !== '')
+                    No se encontraron objetos que coincidan con tu búsqueda
+                @elseif (($filters['categoria_id'] ?? '') !== ''
+                    || ($filters['lugar_id'] ?? '') !== ''
+                    || ($filters['fecha_desde'] ?? '') !== ''
+                    || ($filters['fecha_hasta'] ?? '') !== '')
+                    No se encontraron publicaciones con los filtros seleccionados.
+                @else
+                    Todavía no hay objetos publicados.
+                @endif
+            </div>
         @endif
     </main>
 </body>

@@ -20,11 +20,14 @@
                 <h2>{{ $post->titulo }}</h2>
             </div>
             <div class="card-body" id="contenido">
+                <p><strong>Tipo:</strong> {{ $post->tipo === 'PERDIDO' ? 'Perdido' : 'Encontrado' }}</p>
                 <p><strong>ID:</strong> {{ $post->id }}</p>
                 <p><strong>Título:</strong> {{ $post->titulo }}</p>
                 <p><strong>Descripción:</strong> {{ $post->descripcion }}</p>
                 <p><strong>Fecha de Creación:</strong> {{ optional($post->fecha_creacion)->format('d-m-Y H:i') }}</p>
-                <p><strong>Subido por:</strong> {{ $post->user->nombres }} ({{ $post->user->correo }})</p>
+                <p><strong>Publicado por:</strong> {{ $post->user->nombres }} {{ $post->user->apellidos }}</p>
+                <p><strong>Correo:</strong> <a href="mailto:{{ $post->user->correo }}">{{ $post->user->correo }}</a></p>
+                <p><strong>Teléfono:</strong> <a href="tel:{{ $post->user->telefono }}">{{ $post->user->telefono }}</a></p>
             </div>
             <div class="card-footer">
             <x-boton-volver route="posts.index" />
