@@ -53,6 +53,10 @@
                     <input id="imagen" type="file" name="imagen" accept="image/jpeg,image/png,image/webp"
                         aria-required="true" aria-describedby="imagen-error">
                     <small id="imagen-error" class="field-error" role="alert" hidden>Selecciona una imagen del objeto hallado.</small>
+                    <figure id="imagen-preview" class="image-preview" hidden>
+                        <img id="imagen-preview-img" alt="Vista previa de la imagen seleccionada">
+                        <figcaption>Vista previa</figcaption>
+                    </figure>
                 </div>
 
                 <div class="field">
@@ -124,6 +128,9 @@
         const imageInput = document.getElementById('imagen');
         const imageLabel = document.querySelector('.image-upload');
         const imageError = document.getElementById('imagen-error');
+        const imagePreview = document.getElementById('imagen-preview');
+        const imagePreviewImage = document.getElementById('imagen-preview-img');
+        let previewUrl = null;
 
         imageLabel.addEventListener('keydown', function (event) {
             if (event.key === 'Enter' || event.key === ' ') {
@@ -133,11 +140,25 @@
         });
 
         imageInput.addEventListener('change', function () {
-            imageError.hidden = imageInput.files.length > 0;
+            const file = imageInput.files[0];
+            imageError.hidden = Boolean(file);
+
+            if (previewUrl) {
+                URL.revokeObjectURL(previewUrl);
+                previewUrl = null;
+            }
+
+            imagePreview.hidden = !file;
+            if (file) {
+                previewUrl = URL.createObjectURL(file);
+                imagePreviewImage.src = previewUrl;
+            } else {
+                imagePreviewImage.removeAttribute('src');
+            }
         });
 
         foundForm.addEventListener('submit', function (event) {
-            if (imageInput.files.length === 0) {
+            if (!imageInput.files.length) {
                 event.preventDefault();
                 imageError.hidden = false;
                 imageLabel.focus();

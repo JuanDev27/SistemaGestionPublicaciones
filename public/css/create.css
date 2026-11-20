@@ -209,6 +209,32 @@ body {
     display: none;
 }
 
+.image-preview {
+    margin: 10px 0 0;
+    padding: 8px;
+    border: 1px solid #e1ded5;
+    border-radius: 9px;
+    background: #fff;
+}
+
+.image-preview[hidden] {
+    display: none;
+}
+
+.image-preview img {
+    display: block;
+    width: 100%;
+    max-height: 220px;
+    border-radius: 6px;
+    object-fit: contain;
+}
+
+.image-preview figcaption {
+    margin-top: 5px;
+    color: #6d8b72;
+    text-align: center;
+}
+
 .safety-option {
     display: flex;
     gap: 7px;

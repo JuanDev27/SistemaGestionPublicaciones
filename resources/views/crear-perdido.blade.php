@@ -138,6 +138,33 @@
             line-height: 1.5;
         }
 
+        .image-preview {
+            margin: 0.25rem 0 0;
+            padding: 0.65rem;
+            border: 1px solid var(--lost-border);
+            border-radius: 12px;
+            background: #ffffff;
+        }
+
+        .image-preview[hidden] {
+            display: none;
+        }
+
+        .image-preview img {
+            display: block;
+            width: 100%;
+            max-height: 280px;
+            border-radius: 8px;
+            object-fit: contain;
+        }
+
+        .image-preview figcaption {
+            margin-top: 0.45rem;
+            color: var(--lost-muted);
+            font-size: 0.75rem;
+            text-align: center;
+        }
+
         .form-control-file {
             padding: 0.55rem 0.7rem;
         }
@@ -432,6 +459,10 @@
                         accept="image/jpeg,image/png,image/webp"
                         @error('imagen') aria-invalid="true" @enderror>
                     <p class="field-hint">Puedes adjuntar una foto en formato JPG, PNG o WEBP.</p>
+                    <figure id="imagen-preview" class="image-preview" hidden>
+                        <img id="imagen-preview-img" alt="Vista previa de la imagen seleccionada">
+                        <figcaption>Vista previa</figcaption>
+                    </figure>
                     @error('imagen')
                         <p class="field-error">{{ $message }}</p>
                     @enderror
@@ -452,6 +483,10 @@
             const form = document.getElementById('form-crear-perdido');
             const clientError = document.getElementById('form-client-error');
             const requiredFields = Array.from(form.querySelectorAll('[required]'));
+            const imageInput = document.getElementById('imagen');
+            const imagePreview = document.getElementById('imagen-preview');
+            const imagePreviewImage = document.getElementById('imagen-preview-img');
+            let previewUrl = null;
 
             const hasValue = (field) => field.value.trim() !== '';
 
@@ -459,6 +494,23 @@
                 field.setAttribute('aria-invalid', String(!isValid));
                 field.classList.toggle('is-invalid', !isValid);
             };
+
+            imageInput.addEventListener('change', function () {
+                const file = imageInput.files[0];
+
+                if (previewUrl) {
+                    URL.revokeObjectURL(previewUrl);
+                    previewUrl = null;
+                }
+
+                imagePreview.hidden = !file;
+                if (file) {
+                    previewUrl = URL.createObjectURL(file);
+                    imagePreviewImage.src = previewUrl;
+                } else {
+                    imagePreviewImage.removeAttribute('src');
+                }
+            });
 
             requiredFields.forEach((field) => {
                 const eventName = field.tagName === 'SELECT' || field.type === 'date' ? 'change' : 'input';

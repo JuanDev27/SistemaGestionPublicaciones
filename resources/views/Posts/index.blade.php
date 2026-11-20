@@ -105,7 +105,15 @@
                 @foreach ($publicaciones as $post)
                     <article class="post-card">
                         @if ($post->imagen)
-                            <img src="{{ asset('storage/' . $post->imagen) }}" alt="Imagen de {{ $post->titulo }}" class="post-image">
+                            <button
+                                type="button"
+                                class="post-image-button"
+                                data-image-preview="{{ asset('storage/' . $post->imagen) }}"
+                                data-image-alt="Vista previa de {{ $post->titulo }}"
+                                aria-label="Ampliar imagen de {{ $post->titulo }}"
+                            >
+                                <img src="{{ asset('storage/' . $post->imagen) }}" alt="Imagen de {{ $post->titulo }}" class="post-image">
+                            </button>
                         @else
                             <div class="post-image post-image-empty">Sin imagen</div>
                         @endif
@@ -191,6 +199,50 @@
             </div>
         @endif
     </main>
+
+    <div class="image-preview-modal" id="image-preview-modal" hidden>
+        <button type="button" class="image-preview-backdrop" data-close-image-preview aria-label="Cerrar vista previa"></button>
+        <section class="image-preview-dialog" role="dialog" aria-modal="true" aria-label="Vista previa de publicación">
+            <button type="button" class="image-preview-close" data-close-image-preview aria-label="Cerrar vista previa">&times;</button>
+            <img id="wall-image-preview" alt="">
+        </section>
+    </div>
+
+    <script>
+        const imagePreviewModal = document.getElementById('image-preview-modal');
+        const wallImagePreview = document.getElementById('wall-image-preview');
+        let previousFocus = null;
+
+        document.querySelectorAll('[data-image-preview]').forEach((button) => {
+            button.addEventListener('click', () => {
+                previousFocus = button;
+                wallImagePreview.src = button.dataset.imagePreview;
+                wallImagePreview.alt = button.dataset.imageAlt;
+                imagePreviewModal.hidden = false;
+                document.body.classList.add('image-preview-open');
+                imagePreviewModal.querySelector('.image-preview-close').focus();
+            });
+        });
+
+        const closeImagePreview = () => {
+            imagePreviewModal.hidden = true;
+            document.body.classList.remove('image-preview-open');
+            wallImagePreview.removeAttribute('src');
+            if (previousFocus) {
+                previousFocus.focus();
+            }
+        };
+
+        document.querySelectorAll('[data-close-image-preview]').forEach((button) => {
+            button.addEventListener('click', closeImagePreview);
+        });
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && !imagePreviewModal.hidden) {
+                closeImagePreview();
+            }
+        });
+    </script>
 </body>
 
 </html>
